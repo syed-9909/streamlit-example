@@ -12,35 +12,54 @@ forums](https://discuss.streamlit.io).
 
 In the meantime, below is an example of what you can do with just a few lines of code:
 """
+#import streamlit as st
+import sqlite3
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+# Function to get a response from the chatbot
+def get_bot_response(user_input):
+    # For simplicity, this example just echoes the user input as the bot response
+    return user_input
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+# Streamlit app
+def main():
+    st.title("Simple Chatbot with SQLite")
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+    # Connect to SQLite database
+    conn = sqlite3.connect('your_database.db')  # Replace 'your_database.db' with your database file
+    cursor = conn.cursor()
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
-# Function to generate random color in Hex format
-def random_color():
-    return "#{:06x}".format(np.random.randint(0, 0xFFFFFF))
+    # Create chat_history table if not exists
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS chat_history (
+            user_input TEXT,
+            bot_response TEXT
+        )
+    ''')
 
-# Add a column with random colors to the DataFrame
-df['rand_color'] = df['rand'].apply(lambda x: random_color())
+    # Sidebar to show chat history
+    st.sidebar.title("Chat History")
+    chat_history = st.sidebar.empty()
 
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("rand_color", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+    # Main chatbot interface
+    user_input = st.text_input("You:", "")
+    if st.button("Send"):
+        if user_input:
+            # Save user input to the database
+            cursor.execute("INSERT INTO chat_history (user_input, bot_response) VALUES (?, ?)", (user_input, get_bot_response(user_input)))
+            conn.commit()
+
+            # Display user input
+            st.text(f"You: {user_input}")
+
+            # Display bot response
+            bot_response = get_bot_response(user_input)
+            st.text(f"Bot: {bot_response}")
+
+            # Update chat history in the sidebar
+            chat_history.text(f"You: {user_input}\nBot: {bot_response}")
+
+    # Close database connection
+    conn.close()
+
+if __name__ == "__main__":
+    main()
