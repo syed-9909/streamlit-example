@@ -41,6 +41,6 @@ st.altair_chart(alt.Chart(df, height=700, width=700)
     .encode(
         x=alt.X("x", axis=None),
         y=alt.Y("y", axis=None),
-        color=alt.Color("rand", legend=None, scale=alt.Scale()),
+        color=alt.Color("rand_color", legend=None, scale=alt.Scale()),
         size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
     ))
