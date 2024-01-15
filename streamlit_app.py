@@ -29,6 +29,12 @@ df = pd.DataFrame({
     "idx": indices,
     "rand": np.random.randn(num_points),
 })
+# Function to generate random color in Hex format
+def random_color():
+    return "#{:06x}".format(np.random.randint(0, 0xFFFFFF))
+
+# Add a column with random colors to the DataFrame
+df['rand_color'] = df['rand'].apply(lambda x: random_color())
 
 st.altair_chart(alt.Chart(df, height=700, width=700)
     .mark_point(filled=True)
